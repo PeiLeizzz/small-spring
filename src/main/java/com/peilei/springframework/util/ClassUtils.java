@@ -19,4 +19,22 @@ public class ClassUtils {
         }
         return cl;
     }
+
+    /**
+     * 根据 Class 对象判断是否为 CGLib 生成的类
+     * @param clazz
+     * @return
+     */
+    public static boolean isCglibProxyClass(Class<?> clazz) {
+        return clazz != null && isCglibProxyClassName(clazz.getName());
+    }
+
+    /**
+     * 根据类名判断是否为 CGLib 生成的类
+     * @param className
+     * @return
+     */
+    public static boolean isCglibProxyClassName(String className) {
+        return className != null && className.contains("$$");
+    }
 }

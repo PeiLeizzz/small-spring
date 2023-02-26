@@ -16,6 +16,7 @@ import com.peilei.springframework.test.bean.UserDao;
 import com.peilei.springframework.test.bean.UserService;
 import com.peilei.springframework.test.common.MyBeanFactoryPostProcessor;
 import com.peilei.springframework.test.common.MyBeanPostProcessor;
+import com.peilei.springframework.test.event.CustomEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjdk.jol.info.ClassLayout;
@@ -159,5 +160,14 @@ public class ApiTest {
         // 调用代理方法
         com.peilei.springframework.test.ch10.UserService userService = applicationContext.getBean("userService", com.peilei.springframework.test.ch10.UserService.class);
         System.out.println("代理方法：" + userService.queryUserInfo());
+    }
+
+    @Test
+    public void test_event() throws BeansException {
+        // 初始化 FactoryBean
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-event.xml");
+        applicationContext.registerShutdownHook();
+
+        applicationContext.publishEvent(new CustomEvent(applicationContext, 1204129048102948L, "成功了"));
     }
 }

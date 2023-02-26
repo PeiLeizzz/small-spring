@@ -31,12 +31,13 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
         return singletonObjects.get(beanName);
     }
 
+
     /**
      * 注册单例对象，只有子类可调用
      * @param beanName
      * @param singletonObject
      */
-    protected void addSingleton(String beanName, Object singletonObject) {
+    public void registerSingleton(String beanName, Object singletonObject) {
         singletonObjects.put(beanName, singletonObject);
     }
 

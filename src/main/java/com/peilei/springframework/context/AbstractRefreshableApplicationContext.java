@@ -19,7 +19,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
         this.beanFactory = beanFactory;
     }
 
-    private DefaultListableBeanFactory createBeanFactory() {
+    private DefaultListableBeanFactory createBeanFactory() throws BeansException {
         return new DefaultListableBeanFactory();
     }
 

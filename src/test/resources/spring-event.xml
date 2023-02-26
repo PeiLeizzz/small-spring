@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans>
+    <bean class="com.peilei.springframework.test.event.CustomerEventListener"></bean>
+    <bean class="com.peilei.springframework.test.event.ContextRefreshedEventListener"></bean>
+    <bean class="com.peilei.springframework.test.event.ContextClosedEventListener"></bean>
+</beans>
