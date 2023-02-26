@@ -1,9 +1,10 @@
 package com.peilei.springframework.beans.factory;
 
+import com.peilei.springframework.beans.definition.FactoryBean;
 import com.peilei.springframework.beans.exception.BeansException;
 import com.peilei.springframework.beans.definition.BeanDefinition;
 import com.peilei.springframework.beans.processor.BeanPostProcessor;
-import com.peilei.springframework.beans.registry.DefaultSingletonBeanRegistry;
+import com.peilei.springframework.beans.registry.FactoryBeanRegistry;
 import com.peilei.springframework.util.ClassUtils;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * 定义了获取 Bean 对象的步骤
  */
-public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements ConfigurableBeanFactory {
+public abstract class AbstractBeanFactory extends FactoryBeanRegistry implements ConfigurableBeanFactory {
     /**
      * BeanPostProcessor 处理器集合
      */
@@ -67,16 +68,17 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
      */
     protected <T> T doGetBean(String name, Object[] args) throws BeansException {
         // 先尝试获取单例对象
-        // 如果不是新的 name，之前会有缓存
-        Object bean = getSingleton(name);
-        if (bean != null) {
-            return (T) bean;
+        Object sharedInstance = getSingleton(name);
+        if (sharedInstance != null) {
+            return (T) getObjectForBeanInstance(sharedInstance, name);
         }
 
         // 获取 Bean 定义对象
         BeanDefinition beanDefinition = getBeanDefinition(name);
         // 实例化 Bean 对象并填充其属性
-        return (T) createBean(name, beanDefinition, args);
+        Object bean = createBean(name, beanDefinition, args);
+        // 获取 FactoryBean 中的 Object 对象并返回
+        return (T) getObjectForBeanInstance(bean, name);
     }
 
     /**
@@ -95,6 +97,23 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
      * @throws BeansException
      */
     protected abstract Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException;
+
+    /**
+     * 获取 FactoryBean 中的 Object 对象
+     * @param beanInstance
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
+    private Object getObjectForBeanInstance(Object beanInstance, String beanName) throws BeansException {
+        // 只有 FactoryBean 对象才走 FactoryBean.getObject() 方法
+        if (!(beanInstance instanceof FactoryBean)) {
+            return beanInstance;
+        }
+
+        FactoryBean<?> factoryBean = (FactoryBean<?>) beanInstance;
+        return getObjectFromFactoryBean(factoryBean, beanName);
+    }
 
     @Override
     public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {

@@ -1,5 +1,7 @@
 package com.peilei.springframework.beans.definition;
 
+import com.peilei.springframework.beans.factory.ConfigurableBeanFactory;
+
 /**
  * 用于存放 Bean 对象定义
  */
@@ -24,6 +26,16 @@ public class BeanDefinition {
      * Bean 销毁方法
      */
     private String destroyMethodName;
+
+    String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
+    String SCOPE_PROTOTYPE = ConfigurableBeanFactory.SCOPE_PROTOTYPE;
+
+    /**
+     * 对象作用域，单例 / 原型
+     */
+    private String scope = SCOPE_SINGLETON;
+    private boolean singleton = true;
+    private boolean prototype = false;
 
     public BeanDefinition(Class beanClass) {
         this.beanClass = beanClass;
@@ -66,5 +78,31 @@ public class BeanDefinition {
 
     public void setDestroyMethodName(String destroyMethodName) {
         this.destroyMethodName = destroyMethodName;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+        this.singleton = SCOPE_SINGLETON.equals(scope);
+        this.prototype = SCOPE_PROTOTYPE.equals(scope);
+    }
+
+    public boolean isSingleton() {
+        return singleton;
+    }
+
+    public void setSingleton(boolean singleton) {
+        this.singleton = singleton;
+    }
+
+    public boolean isPrototype() {
+        return prototype;
+    }
+
+    public void setPrototype(boolean prototype) {
+        this.prototype = prototype;
     }
 }

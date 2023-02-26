@@ -18,6 +18,7 @@ import com.peilei.springframework.test.common.MyBeanFactoryPostProcessor;
 import com.peilei.springframework.test.common.MyBeanPostProcessor;
 import org.junit.Before;
 import org.junit.Test;
+import org.openjdk.jol.info.ClassLayout;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,5 +129,35 @@ public class ApiTest {
         // 第二次获取 Bean（单例）
         UserService userService_singleton = (UserService) beanFactory.getBean("userService", "test2");
         userService_singleton.queryUserInfo();
+    }
+
+    @Test
+    public void test_prototype() throws BeansException {
+        // 初始化 FactoryBean
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-proxy.xml");
+        applicationContext.registerShutdownHook();
+
+        // 获取 Bean 对象调用方法
+        com.peilei.springframework.test.ch10.UserService userService01 = applicationContext.getBean("userService", com.peilei.springframework.test.ch10.UserService.class);
+        com.peilei.springframework.test.ch10.UserService userService02 = applicationContext.getBean("userService", com.peilei.springframework.test.ch10.UserService.class);
+
+        // 配置 scope="prototype/singleton"
+        System.out.println(userService01);
+        System.out.println(userService02);
+
+        // 打印十六进制哈希
+        System.out.println(userService01 + " 十六进制哈希：" + Integer.toHexString(userService01.hashCode()));
+        System.out.println(ClassLayout.parseInstance(userService01).toPrintable());
+    }
+
+    @Test
+    public void test_factory_bean() throws BeansException {
+        // 初始化 FactoryBean
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-proxy.xml");
+        applicationContext.registerShutdownHook();
+
+        // 调用代理方法
+        com.peilei.springframework.test.ch10.UserService userService = applicationContext.getBean("userService", com.peilei.springframework.test.ch10.UserService.class);
+        System.out.println("代理方法：" + userService.queryUserInfo());
     }
 }

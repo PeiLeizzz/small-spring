@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans>
+    <bean id="proxyUserDao" class="com.peilei.springframework.test.bean.ProxyBeanFactory"/>
+    <bean id="userService" class="com.peilei.springframework.test.ch10.UserService" scope="prototype">
+        <property name="uid" value="10001" />
+        <property name="userDao" ref="proxyUserDao" />
+        <property name="location" value="深圳" />
+        <property name="company" value="腾讯" />
+    </bean>
+</beans>
