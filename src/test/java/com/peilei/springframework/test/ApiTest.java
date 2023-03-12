@@ -1,6 +1,11 @@
 package com.peilei.springframework.test;
 
 import cn.hutool.core.io.IoUtil;
+import com.peilei.springframework.aop.combine.TargetSource;
+import com.peilei.springframework.aop.combine.AdvisedSupport;
+import com.peilei.springframework.aop.aspectj.AspectJExpressionPointCut;
+import com.peilei.springframework.aop.proxy.Cglib2AopProxy;
+import com.peilei.springframework.aop.proxy.JdkDynamicAopProxy;
 import com.peilei.springframework.beans.definition.BeanDefinition;
 import com.peilei.springframework.beans.definition.BeanReference;
 import com.peilei.springframework.beans.definition.PropertyValue;
@@ -12,6 +17,9 @@ import com.peilei.springframework.beans.strategy.SimpleInstantiationStrategy;
 import com.peilei.springframework.context.ClassPathXmlApplicationContext;
 import com.peilei.springframework.core.io.DefaultResourceLoader;
 import com.peilei.springframework.core.io.Resource;
+import com.peilei.springframework.test.aop.AopUserService;
+import com.peilei.springframework.test.aop.IUserService;
+import com.peilei.springframework.test.aop.UserServiceInterceptor;
 import com.peilei.springframework.test.bean.UserDao;
 import com.peilei.springframework.test.bean.UserService;
 import com.peilei.springframework.test.common.MyBeanFactoryPostProcessor;
@@ -23,6 +31,7 @@ import org.openjdk.jol.info.ClassLayout;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 
 public class ApiTest {
     private DefaultResourceLoader resourceLoader;
@@ -169,5 +178,35 @@ public class ApiTest {
         applicationContext.registerShutdownHook();
 
         applicationContext.publishEvent(new CustomEvent(applicationContext, 1204129048102948L, "成功了"));
+    }
+
+    @Test
+    public void test_aop() throws NoSuchMethodException {
+        AspectJExpressionPointCut pointCut = new AspectJExpressionPointCut("execution(* com.peilei.springframework.test.bean.UserService.*(..))");
+        Class<UserService> clazz = UserService.class;
+        Method method = clazz.getDeclaredMethod("queryUserInfo");
+
+        System.out.println(pointCut.matches(clazz));
+        System.out.println(pointCut.matches(method, clazz));
+    }
+
+    @Test
+    public void test_dynamic() {
+        // 目标对象
+        IUserService userService = new AopUserService();
+
+        // 组装代理信息
+        AdvisedSupport advised = new AdvisedSupport();
+        advised.setTargetSource(new TargetSource(userService));
+        advised.setMethodInterceptor(new UserServiceInterceptor());
+        advised.setMethodMatcher(new AspectJExpressionPointCut("execution(* com.peilei.springframework.test.aop.IUserService.*(..))"));
+
+        // JDK 代理对象
+        IUserService proxy_jdk = (IUserService) new JdkDynamicAopProxy(advised).getProxy();
+        System.out.println("测试结果：" + proxy_jdk.queryUserInfo());
+
+        // Cglib 代理对象
+        IUserService proxy_cglib = (IUserService) new Cglib2AopProxy(advised).getProxy();
+        System.out.println("测试结果：" + proxy_cglib.register("test"));
     }
 }
