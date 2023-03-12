@@ -42,7 +42,7 @@ public abstract class FactoryBeanRegistry extends DefaultSingletonBeanRegistry {
      * @param beanName
      * @return
      */
-    private Object getCachedObjectForFactoryBean(String beanName) {
+    protected Object getCachedObjectForFactoryBean(String beanName) {
         Object object = this.factoryBeanObjectCache.get(beanName);
         return object == NULL_OBJECT ? null: object;
     }

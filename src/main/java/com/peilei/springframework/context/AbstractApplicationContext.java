@@ -54,7 +54,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
         registerListeners();
 
         // 预先实例化单例对象
-        // TODO：目前还没有用到
+        // xml 中没有 scope 字段的默认都是单例对象
         beanFactory.preInstantiateSingletons();
 
         // 发布容器刷新完成事件

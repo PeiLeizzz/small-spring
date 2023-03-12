@@ -32,6 +32,7 @@ public class BeanDefinition {
 
     /**
      * 对象作用域，单例 / 原型
+     * 如果 xml 中没有定义 scope 字段，则默认为单例对象
      */
     private String scope = SCOPE_SINGLETON;
     private boolean singleton = true;
