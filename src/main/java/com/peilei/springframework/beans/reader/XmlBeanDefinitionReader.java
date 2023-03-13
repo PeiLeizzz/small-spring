@@ -7,6 +7,7 @@ import com.peilei.springframework.beans.definition.BeanReference;
 import com.peilei.springframework.beans.definition.PropertyValue;
 import com.peilei.springframework.beans.exception.BeansException;
 import com.peilei.springframework.beans.registry.BeanDefinitionRegistry;
+import com.peilei.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import com.peilei.springframework.core.io.Resource;
 import com.peilei.springframework.core.io.ResourceLoader;
 import org.w3c.dom.Document;
@@ -71,9 +72,22 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
     protected void doLoadBeanDefinitions(InputStream inputStream) throws ClassNotFoundException, BeansException {
         Document doc = XmlUtil.readXML(inputStream);
         Element root = doc.getDocumentElement();
+
+        // 解析 component-scan 标签，扫描包中的类并提取相关信息，用于组装 BeanDefinition
+        NodeList componentScanNodes = root.getElementsByTagName("component-scan");
+        for (int i = 0; i < componentScanNodes.getLength(); i++) {
+            if (!(componentScanNodes.item(i) instanceof Element)) {
+                continue;
+            }
+            Element componentScan = (Element) componentScanNodes.item(0);
+            String scanPath = componentScan.getAttribute("base-package");
+            if (StrUtil.isEmpty(scanPath)) {
+                throw new BeansException("The value of base-package attribute can not be empty or null");
+            }
+            scanPackage(scanPath);
+        }
+
         NodeList childNodes = root.getChildNodes();
-
-
         for (int i = 0; i < childNodes.getLength(); i++) {
             // 判断元素类型
             if (!(childNodes.item(i) instanceof Element)) {
@@ -141,5 +155,15 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
             getRegistry().registerBeanDefinition(beanName, beanDefinition);
         }
+    }
+
+    /**
+     * 扫描包路径
+     * @param scanPath
+     */
+    private void scanPackage(String scanPath) {
+        String[] basePackages = StrUtil.splitToArray(scanPath, ',');
+        ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(getRegistry());
+        scanner.doScan(basePackages);
     }
 }

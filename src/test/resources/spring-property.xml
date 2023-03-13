@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans>
+    <bean class="com.peilei.springframework.beans.configurer.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:important.properties" />
+    </bean>
+    <bean id="userService" class="com.peilei.springframework.test.aop.AutoUserService">
+        <property name="token" value="${token}" />
+    </bean>
+</beans>
