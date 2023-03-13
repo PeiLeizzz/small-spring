@@ -209,4 +209,11 @@ public class ApiTest {
         IUserService proxy_cglib = (IUserService) new Cglib2AopProxy(advised).getProxy();
         System.out.println("测试结果：" + proxy_cglib.register("test"));
     }
+
+    @Test
+    public void test_spring_aop() throws BeansException {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-aop.xml");
+        IUserService userService = applicationContext.getBean("userService", IUserService.class);
+        System.out.println("测试结果：" + userService.queryUserInfo());
+    }
 }

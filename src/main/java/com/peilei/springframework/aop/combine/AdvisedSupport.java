@@ -20,6 +20,17 @@ public class AdvisedSupport {
     // 由 AspectJExpressionPointcut 提供服务
     private MethodMatcher methodMatcher;
 
+    // ProxyConfig 默认为 false
+    private boolean proxyTargetClass = false;
+
+    public boolean isProxyTargetClass() {
+        return proxyTargetClass;
+    }
+
+    public void setProxyTargetClass(boolean proxyTargetClass) {
+        this.proxyTargetClass = proxyTargetClass;
+    }
+
     public TargetSource getTargetSource() {
         return targetSource;
     }

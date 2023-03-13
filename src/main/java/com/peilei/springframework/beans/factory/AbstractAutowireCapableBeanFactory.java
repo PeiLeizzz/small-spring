@@ -13,6 +13,7 @@ import com.peilei.springframework.beans.definition.PropertyValues;
 import com.peilei.springframework.beans.exception.BeansException;
 import com.peilei.springframework.beans.definition.BeanDefinition;
 import com.peilei.springframework.beans.processor.BeanPostProcessor;
+import com.peilei.springframework.beans.processor.InstantiationAwareBeanPostProcessor;
 import com.peilei.springframework.beans.strategy.CglibSubclassingInstantiationStrategy;
 import com.peilei.springframework.beans.strategy.InstantiationStrategy;
 
@@ -39,6 +40,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
         Object bean = null;
         try {
+            // 判断是否返回代理对象
+            bean = resolveBeforeInstantiation(beanName, beanDefinition);
+            if (bean != null) {
+                return bean;
+            }
             // 通过构造函数实例化 Bean
             bean = createBeanInstance(beanDefinition, beanName, args);
             // 根据 Bean 定义对象中的属性值集合，填充 Bean 的属性值，会覆盖上面构造函数设置的值
@@ -57,6 +63,40 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             registerSingleton(beanName, bean);
         }
         return bean;
+    }
+
+    /**
+     * Bean 对象实例化前的行为
+     * @param beanName
+     * @param beanDefinition
+     * @return
+     * @throws BeansException
+     */
+    protected Object resolveBeforeInstantiation(String beanName, BeanDefinition beanDefinition) throws BeansException {
+        Object bean = applyBeanPostProcessorsBeforeInstantiation(beanDefinition.getBeanClass(), beanName);
+        if (bean != null) {
+            bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+        }
+        return bean;
+    }
+
+    /**
+     * 执行 Bean 代理对象实例化前的拦截器
+     * @param beanClass
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
+    protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                Object result = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).postProcessBeforeInstantiation(beanClass, beanName);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        return null;
     }
 
     /**
