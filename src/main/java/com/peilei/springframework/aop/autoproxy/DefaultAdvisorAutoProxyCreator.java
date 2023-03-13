@@ -30,46 +30,8 @@ public class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPos
         this.beanFactory = (DefaultListableBeanFactory) beanFactory;
     }
 
-
-    /**
-     * 创建代理对象
-     * @param beanClass
-     * @param beanName
-     * @return
-     * @throws BeansException
-     */
     @Override
     public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
-        // 切面及切面方法本身不经过这个逻辑来初始化
-        if (isInfrastructureClass(beanClass)) return null;
-
-        // 先初始化所有的 PointcutAdvisor 及其子类
-        Collection<AspectJExpressionPointcutAdvisor> advisors = beanFactory.getBeansOfType(AspectJExpressionPointcutAdvisor.class).values();
-
-        for (AspectJExpressionPointcutAdvisor advisor : advisors) {
-            ClassFilter classFilter = advisor.getPointcut().getClassFilter();
-            // 满足表达式的类才创建代理对象
-            if (!classFilter.matches(beanClass)) continue;
-
-            AdvisedSupport advisedSupport = new AdvisedSupport();
-
-            TargetSource targetSource = null;
-            try {
-                targetSource = new TargetSource(beanClass.getDeclaredConstructor().newInstance());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            advisedSupport.setTargetSource(targetSource);
-            if (advisor.getAdvice() instanceof MethodInterceptor) {
-                advisedSupport.setMethodInterceptor((MethodInterceptor) advisor.getAdvice());
-            }
-            advisedSupport.setMethodMatcher(advisor.getPointcut().getMethodMatcher());
-            advisedSupport.setProxyTargetClass(false);
-
-            return new ProxyFactory(advisedSupport).getProxy();
-        }
-
         return null;
     }
 
@@ -82,8 +44,38 @@ public class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPos
         return bean;
     }
 
+    /**
+     * 创建代理对象
+     * @param bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        // 切面及切面方法本身不经过这个逻辑来初始化
+        if (isInfrastructureClass(bean.getClass())) return null;
+
+        // 先初始化所有的 PointcutAdvisor 及其子类
+        Collection<AspectJExpressionPointcutAdvisor> advisors = beanFactory.getBeansOfType(AspectJExpressionPointcutAdvisor.class).values();
+
+        for (AspectJExpressionPointcutAdvisor advisor : advisors) {
+            ClassFilter classFilter = advisor.getPointcut().getClassFilter();
+            // 满足表达式的类才创建代理对象
+            if (!classFilter.matches(bean.getClass())) continue;
+
+            AdvisedSupport advisedSupport = new AdvisedSupport();
+
+            TargetSource targetSource = new TargetSource(bean);
+            advisedSupport.setTargetSource(targetSource);
+            if (advisor.getAdvice() instanceof MethodInterceptor) {
+                advisedSupport.setMethodInterceptor((MethodInterceptor) advisor.getAdvice());
+            }
+            advisedSupport.setMethodMatcher(advisor.getPointcut().getMethodMatcher());
+            advisedSupport.setProxyTargetClass(false);
+
+            return new ProxyFactory(advisedSupport).getProxy();
+        }
         return bean;
     }
 

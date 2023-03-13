@@ -3,6 +3,7 @@ package com.peilei.springframework.test.aop;
 import java.util.Random;
 
 public class AopUserService implements IUserService {
+    private String token;
 
     @Override
     public String queryUserInfo() {
@@ -11,7 +12,7 @@ public class AopUserService implements IUserService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return "peilei, 100001, beijing";
+        return "peilei, 100001, beijing, " + token;
     }
 
     @Override

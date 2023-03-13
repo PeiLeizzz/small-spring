@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * 包路径扫描和处理作用域、BeanName 的类
  */
-public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider{
+public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider {
     private BeanDefinitionRegistry registry;
 
     public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry) {

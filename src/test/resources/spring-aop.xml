@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <beans>
-    <bean id="userService" class="com.peilei.springframework.test.aop.AopUserService" />
+    <bean class="com.peilei.springframework.beans.processor.PropertyPlaceholderProcessor">
+        <property name="location" value="classpath:important.properties" />
+    </bean>
+
+    <bean id="userService" class="com.peilei.springframework.test.aop.AopUserService">
+        <property name="token" value="${token}" />
+    </bean>
     <bean class="com.peilei.springframework.aop.autoproxy.DefaultAdvisorAutoProxyCreator" />
     <bean id="beforeAdvice" class="com.peilei.springframework.test.aop.UserServiceBeforeAdvice" />
     <bean id="methodInterceptor" class="com.peilei.springframework.aop.interceptor.MethodBeforeAdviceInterceptor">

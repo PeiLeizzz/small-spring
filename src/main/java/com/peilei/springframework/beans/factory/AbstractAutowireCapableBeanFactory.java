@@ -30,6 +30,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
     /**
      * 实例化 Bean 对象并填充其属性的具体逻辑实现
+     * factory bean process -- before instantiation -- create bean
+     * -- BeanPostProcessor apply property values -- xml apply property values
+     * -- aware -- before process -- init method -- after process
+     * -- register disposable bean -- add to singleton pool
      * @param beanName
      * @param beanDefinition
      * @param args
@@ -176,7 +180,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     }
 
     /**
-     * Bean 的初始化行为，beforeProcess -- initMethod -- afterProcess
+     * Bean 的初始化行为，aware - beforeProcess -- initMethod -- afterProcess
      * @param beanName
      * @param bean
      * @param beanDefinition
