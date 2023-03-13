@@ -3,7 +3,5 @@
     <bean class="com.peilei.springframework.beans.processor.PropertyPlaceholderProcessor">
         <property name="location" value="classpath:important.properties" />
     </bean>
-    <bean id="userService" class="com.peilei.springframework.test.aop.AutoUserService">
-        <property name="token" value="${token}" />
-    </bean>
+    <component-scan base-package="com.peilei.springframework.test.anno" />
 </beans>

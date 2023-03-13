@@ -47,7 +47,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             }
             // 通过构造函数实例化 Bean
             bean = createBeanInstance(beanDefinition, beanName, args);
-            // 根据 Bean 定义对象中的属性值集合，填充 Bean 的属性值，会覆盖上面构造函数设置的值
+            // 在设置 Bean 属性之前，允许 BeanPostProcessor 修改属性值
+            applyBeanPostProcessorsBeforeApplyingPropertyValues(beanName, bean, beanDefinition);
+            // 根据 Bean 定义对象中的属性值集合，填充 Bean 的属性值，会覆盖上面构造函数设置的值和 BeanPostProcessor 修改的值
             applyPropertyValues(beanName, bean, beanDefinition);
             // 执行 Bean 的初始化方法和 BeanPostProcessor 的前置和后置处理方法
             bean = initializeBean(beanName, bean, beanDefinition);
@@ -66,7 +68,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     }
 
     /**
-     * Bean 对象实例化前的行为
+     * Bean 对象实例化前的行为，如果是代理对象，则不返回 null
      * @param beanName
      * @param beanDefinition
      * @return
@@ -81,7 +83,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     }
 
     /**
-     * 执行 Bean 代理对象实例化前的拦截器
+     * 执行 Bean 对象实例化前的拦截器，如果是代理对象，则不返回 null
      * @param beanClass
      * @param beanName
      * @return
@@ -124,6 +126,26 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         // 当 args 为 null / 长度为 0 时，constructorToUse = null
         // 此时会调用无参构造
         return getInstantiationStrategy().instantiate(beanDefinition, beanName, constructorToUse, args);
+    }
+
+    /**
+     * 在设置 Bean 属性之前，允许 BeanPostProcessor#postProcessPropertyValues 修改属性值
+     * @param beanName
+     * @param bean
+     * @param beanDefinition
+     * @throws BeansException
+     */
+    protected void applyBeanPostProcessorsBeforeApplyingPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) throws BeansException {
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                PropertyValues pvs = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).postProcessPropertyValues(beanDefinition.getPropertyValues(), bean, beanName);
+                if (pvs != null) {
+                    for (PropertyValue propertyValue : pvs.getPropertyValues()) {
+                        beanDefinition.getPropertyValues().addPropertyValue(propertyValue);
+                    }
+                }
+            }
+        }
     }
 
     /**

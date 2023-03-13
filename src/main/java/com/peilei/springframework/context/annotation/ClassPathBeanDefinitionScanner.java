@@ -2,6 +2,7 @@ package com.peilei.springframework.context.annotation;
 
 import cn.hutool.core.util.StrUtil;
 import com.peilei.springframework.beans.definition.BeanDefinition;
+import com.peilei.springframework.beans.processor.AutowiredAnnotationBeanPostProcessor;
 import com.peilei.springframework.beans.registry.BeanDefinitionRegistry;
 import com.peilei.springframework.stereotype.Component;
 
@@ -33,6 +34,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
                 registry.registerBeanDefinition(determineBeanName(beanDefinition), beanDefinition);
             }
         }
+
+        // 注册处理注解的 BeanPostProcessor（@Autowired、@Value、@Qualifier）
+        registry.registerBeanDefinition("com.peilei.springframework.beans.processor.AutowiredAnnotationBeanPostProcessor",
+                new BeanDefinition(AutowiredAnnotationBeanPostProcessor.class));
     }
 
     /**

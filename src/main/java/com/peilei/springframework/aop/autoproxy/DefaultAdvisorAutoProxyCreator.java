@@ -8,6 +8,7 @@ import com.peilei.springframework.aop.combine.AdvisedSupport;
 import com.peilei.springframework.aop.combine.TargetSource;
 import com.peilei.springframework.aop.proxy.ProxyFactory;
 import com.peilei.springframework.beans.aware.BeanFactoryAware;
+import com.peilei.springframework.beans.definition.PropertyValues;
 import com.peilei.springframework.beans.exception.BeansException;
 import com.peilei.springframework.beans.factory.BeanFactory;
 import com.peilei.springframework.beans.factory.DefaultListableBeanFactory;
@@ -30,6 +31,13 @@ public class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPos
     }
 
 
+    /**
+     * 创建代理对象
+     * @param beanClass
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     @Override
     public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
         // 切面及切面方法本身不经过这个逻辑来初始化
@@ -77,5 +85,10 @@ public class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPos
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         return bean;
+    }
+
+    @Override
+    public PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName) throws BeansException {
+        return null;
     }
 }

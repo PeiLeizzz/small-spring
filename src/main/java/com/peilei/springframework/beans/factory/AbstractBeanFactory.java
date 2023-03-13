@@ -6,6 +6,7 @@ import com.peilei.springframework.beans.definition.BeanDefinition;
 import com.peilei.springframework.beans.processor.BeanPostProcessor;
 import com.peilei.springframework.beans.registry.FactoryBeanRegistry;
 import com.peilei.springframework.util.ClassUtils;
+import com.peilei.springframework.util.StringValueResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistry implements
      * BeanPostProcessor 处理器集合
      */
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
+
+    /**
+     * 字符串处理器集合，用于处理注解中字符串值的解析
+     */
+    private final List<StringValueResolver> embeddedValueResolvers = new ArrayList<>();
 
     /**
      * 该 Bean 工厂中的类加载器
@@ -119,6 +125,20 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistry implements
     public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
         this.beanPostProcessors.remove(beanPostProcessor);
         this.beanPostProcessors.add(beanPostProcessor);
+    }
+
+    @Override
+    public void addEmbeddedValueResolver(StringValueResolver resolver) {
+        this.embeddedValueResolvers.add(resolver);
+    }
+
+    @Override
+    public String resolveEmbeddedValue(String value) {
+        String result = value;
+        for (StringValueResolver resolver : this.embeddedValueResolvers) {
+            result = resolver.resolveStringValue(result);
+        }
+        return result;
     }
 
     public List<BeanPostProcessor> getBeanPostProcessors() {
