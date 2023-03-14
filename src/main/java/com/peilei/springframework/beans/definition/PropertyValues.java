@@ -30,4 +30,18 @@ public class PropertyValues {
         }
         return null;
     }
+
+    /**
+     * 设置属性值（用于更换 ${}）中的值
+     * @param propertyName
+     * @param propertyValue
+     */
+    public void setPropertyValue(String propertyName, Object propertyValue) {
+        for (PropertyValue pv : this.propertyValueList) {
+            if (pv.getName().equals(propertyName)) {
+                pv.setValue(propertyValue);
+                return;
+            }
+        }
+    }
 }

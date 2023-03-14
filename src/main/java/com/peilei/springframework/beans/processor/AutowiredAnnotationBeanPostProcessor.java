@@ -1,6 +1,7 @@
 package com.peilei.springframework.beans.processor;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.TypeUtil;
 import com.peilei.springframework.beans.aware.BeanFactoryAware;
 import com.peilei.springframework.beans.definition.PropertyValues;
 import com.peilei.springframework.beans.exception.BeansException;
@@ -9,6 +10,7 @@ import com.peilei.springframework.beans.factory.ConfigurableListableBeanFactory;
 import com.peilei.springframework.context.annotation.Autowired;
 import com.peilei.springframework.context.annotation.Qualifier;
 import com.peilei.springframework.context.annotation.Value;
+import com.peilei.springframework.core.convert.ConversionService;
 import com.peilei.springframework.util.ClassUtils;
 
 import java.lang.reflect.Field;
@@ -16,6 +18,7 @@ import java.lang.reflect.Field;
 /**
  * 自动注入注解处理器
  * 当配置了 component-scan 的信息才会在上下文中注入该处理器
+ * 使用的时候也需要注入 PropertyPlaceholderProcessor 用于注入字符串解析器
  */
 public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareBeanPostProcessor, BeanFactoryAware {
     private ConfigurableListableBeanFactory beanFactory;
@@ -63,8 +66,19 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
         for (Field field : declaredFields) {
             Value valueAnnotation = field.getAnnotation(Value.class);
             if (valueAnnotation != null) {
-                String value = valueAnnotation.value();
-                value = beanFactory.resolveEmbeddedValue(value);
+                Object value = valueAnnotation.value();
+                value = beanFactory.resolveEmbeddedValue((String) value);
+
+                // 类型转换
+                Class<?> sourceType = value.getClass();
+                Class<?> targetType = (Class<?>) TypeUtil.getType(field);
+                ConversionService conversionService = beanFactory.getConversionService();
+                if (conversionService != null) {
+                    if (conversionService.canConvert(sourceType, targetType)) {
+                        value = conversionService.convert(value, targetType);
+                    }
+                }
+
                 BeanUtil.setFieldValue(bean, field.getName(), value);
             }
         }

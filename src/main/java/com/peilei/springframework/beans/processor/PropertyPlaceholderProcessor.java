@@ -49,9 +49,10 @@ public class PropertyPlaceholderProcessor implements BeanFactoryPostProcessor {
                     if (!(value instanceof String)) {
                         continue;
                     }
-                    value = resolvePlaceholder((String) value, properties);
-                    // 添加在链表尾部，优先级更高，会覆盖同名的属性
-                    propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), value));
+                    String newValue = resolvePlaceholder((String) value, properties);
+                    if (!newValue.equals(value)) {
+                        propertyValues.setPropertyValue(propertyValue.getName(), newValue);
+                    }
                 }
             }
 

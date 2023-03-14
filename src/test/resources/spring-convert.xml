@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans>
+    <bean class="com.peilei.springframework.beans.processor.PropertyPlaceholderProcessor">
+        <property name="location" value="classpath:important.properties" />
+    </bean>
+    <bean id="husband" class="com.peilei.springframework.test.converter.ConvertHusband">
+        <property name="wifeName" value="wife" />
+        <property name="marriageDate" value="${date}" />
+    </bean>
+    <bean id="conversionService" class="com.peilei.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters" ref="converters" />
+    </bean>
+    <bean id="converters" class="com.peilei.springframework.test.converter.ConvertersFactoryBean" />
+<!--    <bean id="conversionService" class="com.peilei.springframework.test.converter.MyConverterService" />-->
+    <component-scan base-package="com.peilei.springframework.test.converter" />
+</beans>

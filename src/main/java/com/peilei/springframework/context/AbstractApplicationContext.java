@@ -11,6 +11,7 @@ import com.peilei.springframework.context.event.listener.ApplicationListener;
 import com.peilei.springframework.context.event.multicaster.ApplicationEventMulticaster;
 import com.peilei.springframework.context.event.multicaster.SimpleApplicationEventMulticaster;
 import com.peilei.springframework.context.processor.ApplicationContextAwareProcessor;
+import com.peilei.springframework.core.convert.ConversionService;
 import com.peilei.springframework.core.io.DefaultResourceLoader;
 
 import java.util.Collection;
@@ -37,6 +38,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
         // 获取 BeanFactory
         ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 
+        // 设置类型转换器
+        registerConversionService(beanFactory);
+
         // 添加 ApplicationContextAwareProcessor
         // 让继承自 ApplicationContextAware 的 Bean 对象都能感知所属的 ApplicationContext
         beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
@@ -53,7 +57,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
         // 注册事件监听器
         registerListeners();
 
-        // 预先实例化单例对象
+        // 提前实例化单例Bean对象
         // xml 中没有 scope 字段的默认都是单例对象
         beanFactory.preInstantiateSingletons();
 
@@ -77,6 +81,18 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
      * @return
      */
     protected abstract ConfigurableListableBeanFactory getBeanFactory();
+
+    /**
+     * 设置类型转换器
+     */
+    protected void registerConversionService(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        if (beanFactory.containsBean("conversionService")) {
+            Object conversionService = beanFactory.getBean("conversionService");
+            if (conversionService instanceof ConversionService) {
+                beanFactory.setConversionService((ConversionService) conversionService);
+            }
+        }
+    }
 
     /**
      * 执行所有 BeanDefinition 加载完之后、Bean 对象实例化之前的处理机制
@@ -169,6 +185,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
     @Override
     public <T> T getBean(Class<T> requiredType) throws BeansException {
         return getBeanFactory().getBean(requiredType);
+    }
+
+    @Override
+    public boolean containsBean(String name) {
+        return getBeanFactory().containsBean(name);
     }
 
     @Override

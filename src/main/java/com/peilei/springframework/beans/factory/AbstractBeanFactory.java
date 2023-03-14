@@ -5,6 +5,7 @@ import com.peilei.springframework.beans.exception.BeansException;
 import com.peilei.springframework.beans.definition.BeanDefinition;
 import com.peilei.springframework.beans.processor.BeanPostProcessor;
 import com.peilei.springframework.beans.registry.FactoryBeanRegistry;
+import com.peilei.springframework.core.convert.ConversionService;
 import com.peilei.springframework.util.ClassUtils;
 import com.peilei.springframework.util.StringValueResolver;
 
@@ -29,6 +30,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistry implements
      * 该 Bean 工厂中的类加载器
      */
     private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+    /**
+     * 类型转换服务
+     */
+    private ConversionService conversionService;
 
     /**
      * 根据名称获取 Bean 对象（无参）
@@ -86,6 +92,18 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistry implements
         // 获取 FactoryBean 中的 Object 对象并返回
         return (T) getObjectForBeanInstance(bean, name);
     }
+
+    @Override
+    public boolean containsBean(String name) {
+        return containsBeanDefinition(name);
+    }
+
+    /**
+     * 判断是否包含 Bean 定义
+     * @param beanName
+     * @return
+     */
+    protected abstract boolean containsBeanDefinition(String beanName);
 
     /**
      * 根据 Bean 名称获取 BeanDefinition 对象
@@ -151,5 +169,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistry implements
 
     public void setBeanClassLoader(ClassLoader beanClassLoader) {
         this.beanClassLoader = beanClassLoader;
+    }
+
+    @Override
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
+    @Override
+    public ConversionService getConversionService() {
+        return conversionService;
     }
 }

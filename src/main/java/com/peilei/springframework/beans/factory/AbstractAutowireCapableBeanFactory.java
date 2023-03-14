@@ -1,6 +1,7 @@
 package com.peilei.springframework.beans.factory;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.TypeUtil;
 import com.peilei.springframework.beans.adapter.DisposableBeanAdapter;
 import com.peilei.springframework.beans.adapter.InitializingBeanAdapter;
 import com.peilei.springframework.beans.aware.Aware;
@@ -16,6 +17,7 @@ import com.peilei.springframework.beans.processor.BeanPostProcessor;
 import com.peilei.springframework.beans.processor.InstantiationAwareBeanPostProcessor;
 import com.peilei.springframework.beans.strategy.CglibSubclassingInstantiationStrategy;
 import com.peilei.springframework.beans.strategy.InstantiationStrategy;
+import com.peilei.springframework.core.convert.ConversionService;
 
 import java.lang.reflect.Constructor;
 
@@ -233,11 +235,21 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
                 String name = pv.getName();
                 Object value = pv.getValue();
 
-                // 引用类型对象递归实例化与属性填充
                 if (value instanceof BeanReference) {
+                    // 引用类型对象递归实例化与属性填充
                     BeanReference beanReference = (BeanReference) value;
                     // TODO：构造参数？
                     value = getBean(beanReference.getBeanName());
+                } else {
+                    // 类型转换
+                    Class<?> sourceType = value.getClass();
+                    Class<?> targetType = (Class<?>) TypeUtil.getFieldType(bean.getClass(), name);
+                    ConversionService conversionService = getConversionService();
+                    if (conversionService != null) {
+                        if (conversionService.canConvert(sourceType, targetType)) {
+                            value = conversionService.convert(value, targetType);
+                        }
+                    }
                 }
                 // 设置成员的值
                 BeanUtil.setFieldValue(bean, name, value);

@@ -15,8 +15,11 @@ import com.peilei.springframework.beans.factory.DefaultListableBeanFactory;
 import com.peilei.springframework.beans.reader.XmlBeanDefinitionReader;
 import com.peilei.springframework.beans.strategy.SimpleInstantiationStrategy;
 import com.peilei.springframework.context.ClassPathXmlApplicationContext;
+import com.peilei.springframework.core.convert.converter.Converter;
+import com.peilei.springframework.core.convert.support.StringToNumberConverterFactory;
 import com.peilei.springframework.core.io.DefaultResourceLoader;
 import com.peilei.springframework.core.io.Resource;
+import com.peilei.springframework.test.anno.AnnoUserService;
 import com.peilei.springframework.test.aop.AopUserService;
 import com.peilei.springframework.test.aop.IUserService;
 import com.peilei.springframework.test.aop.UserServiceInterceptor;
@@ -24,6 +27,8 @@ import com.peilei.springframework.test.bean.UserDao;
 import com.peilei.springframework.test.bean.UserService;
 import com.peilei.springframework.test.common.MyBeanFactoryPostProcessor;
 import com.peilei.springframework.test.common.MyBeanPostProcessor;
+import com.peilei.springframework.test.converter.ConvertHusband;
+import com.peilei.springframework.test.converter.ConvertUserService;
 import com.peilei.springframework.test.event.CustomEvent;
 import com.peilei.springframework.test.reference.Husband;
 import com.peilei.springframework.test.reference.Wife;
@@ -247,5 +252,25 @@ public class ApiTest {
         Wife wife = applicationContext.getBean("wife", Wife.class);
         System.out.println("husband: " + husband.queryWife());
         System.out.println("wife: " + wife.queryHusband());
+    }
+
+    @Test
+    public void test_convert() throws BeansException {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-convert.xml");
+        ConvertHusband husband = applicationContext.getBean("husband", ConvertHusband.class);
+        System.out.println("测试结果：" + husband);
+
+        IUserService userService = applicationContext.getBean("userService", IUserService.class);
+        System.out.println("测试结果：" + userService.queryUserInfo());
+        System.out.println(((ConvertUserService) userService).getCardId().getClass());
+    }
+
+    @Test
+    public void test_StringToNumberConverter() {
+        StringToNumberConverterFactory converterFactory = new StringToNumberConverterFactory();
+        Converter<String, Integer> stringIntegerConverter = converterFactory.getConverter(Integer.class);
+        System.out.println("测试结果：" + stringIntegerConverter.convert("1234"));
+        Converter<String, Long> stringLongConverter = converterFactory.getConverter(Long.class);
+        System.out.println("测试结果：" + stringLongConverter.convert("1234"));
     }
 }

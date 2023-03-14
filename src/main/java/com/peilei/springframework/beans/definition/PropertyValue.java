@@ -11,7 +11,7 @@ public class PropertyValue {
     /**
      * 字段值，基础类型 / BeanReference
      */
-    private final Object value;
+    private Object value;
 
     public PropertyValue(String name, Object value) {
         this.name = name;
@@ -24,5 +24,9 @@ public class PropertyValue {
 
     public Object getValue() {
         return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 }

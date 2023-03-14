@@ -3,7 +3,9 @@ package com.peilei.springframework.beans.factory;
 import com.peilei.springframework.beans.exception.BeansException;
 import com.peilei.springframework.beans.processor.BeanPostProcessor;
 import com.peilei.springframework.beans.registry.SingletonBeanRegistry;
+import com.peilei.springframework.core.convert.ConversionService;
 import com.peilei.springframework.util.StringValueResolver;
+import com.sun.istack.internal.Nullable;
 
 /**
  * 可获取 BeanPostProcessor、BeanClassLoader 等的一个配置化接口
@@ -34,4 +36,17 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
      * @param value
      */
     String resolveEmbeddedValue(String value);
+
+    /**
+     * 设置类型转换服务
+     * @param conversionService
+     */
+    void setConversionService(ConversionService conversionService);
+
+    /**
+     * 获取类型转换服务
+     * @return
+     */
+    @Nullable
+    ConversionService getConversionService();
 }
