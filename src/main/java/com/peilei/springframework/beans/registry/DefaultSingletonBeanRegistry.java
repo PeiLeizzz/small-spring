@@ -13,17 +13,18 @@ import java.util.Set;
  */
 public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
     /**
-     * 单例对象一级缓存，普通对象
+     * 单例对象一级缓存，普通对象，完全初始化的对象
      */
     private Map<String, Object> singletonObjects = new HashMap<>();
 
     /**
-     * 二级缓存，没有完全实例化的对象
+     * 二级缓存，没有完全实例化的对象，循环引用中优先引用这个缓存中的对象
      */
     protected final Map<String, Object> earlySingletonObjects = new HashMap<>();
 
     /**
-     * 三级缓存，存放代理对象和工厂对象
+     * 三级缓存，存放代理对象工厂，循环引用发生时，会构造出工厂中实际的对象，加入二级缓存，保证引用的是实际的对象，而不是代理之前的对象
+     * 如果只有二级缓存的话，加入二级缓存的将是代理前的对象，那么会造成不一致（A 持有了 B 的代理前引用，B 已经是代理后的对象，那么 A.getB() != B）
      */
     private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>();
 
@@ -49,11 +50,12 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
             return singletonObject;
         }
 
-        // 代理对象 / 工厂对象
+        // 三级缓存中的代理对象工厂
         ObjectFactory<?> singletonFactory = singletonFactories.get(beanName);
         if (singletonFactory != null) {
+            // 把三级缓存中的代理对象构造出来
             singletonObject = singletonFactory.getObject();
-            // 把三级缓存中的代理 / 工厂对象中的真实对象获取出来，放入二级缓存中
+            // 将只是构造完、还没有初始化的代理对象放入二级缓存中
             earlySingletonObjects.put(beanName, singletonObject);
             singletonFactories.remove(beanName);
         }
