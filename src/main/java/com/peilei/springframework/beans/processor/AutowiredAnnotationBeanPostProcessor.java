@@ -40,6 +40,11 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
         return null;
     }
 
+    @Override
+    public Boolean postProcessAfterInstantiation(Object Bean, String beanName) throws BeansException {
+        return true;
+    }
+
     /**
      * 修改 Bean 的属性值，优先级低于 XML 文件中配置的值
      * @param pvs

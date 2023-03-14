@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans>
+    <bean id="husband" class="com.peilei.springframework.test.reference.Husband">
+        <property name="wife" ref="wife" />
+    </bean>
+
+    <bean id="wife" class="com.peilei.springframework.test.reference.Wife">
+        <property name="husband" ref="husband" />
+        <property name="mother" ref="husbandMother" />
+    </bean>
+
+    <bean id="husbandMother" class="com.peilei.springframework.test.reference.HusbandMother" />
+
+    <bean class="com.peilei.springframework.aop.autoproxy.DefaultAdvisorAutoProxyCreator" />
+
+    <bean id="beforeAdvice" class="com.peilei.springframework.test.reference.SpouseAdvice" />
+
+    <bean id="methodInterceptor" class="com.peilei.springframework.aop.interceptor.MethodBeforeAdviceInterceptor">
+        <property name="advice" ref="beforeAdvice" />
+    </bean>
+
+    <bean id="pointcutAdvisor" class="com.peilei.springframework.aop.advisor.AspectJExpressionPointcutAdvisor">
+        <property name="expression" value="execution(* com.peilei.springframework.test.reference.Wife.*(..))" />
+        <property name="advice" ref="methodInterceptor" />
+    </bean>
+
+</beans>

@@ -1,5 +1,7 @@
 package com.peilei.springframework.beans.registry;
 
+import com.peilei.springframework.beans.exception.BeansException;
+
 /**
  * 获取单例对象接口
  */
@@ -9,7 +11,7 @@ public interface SingletonBeanRegistry {
      * @param beanName
      * @return
      */
-    Object getSingleton(String beanName);
+    Object getSingleton(String beanName) throws BeansException;
 
     /**
      * 注册单例对象

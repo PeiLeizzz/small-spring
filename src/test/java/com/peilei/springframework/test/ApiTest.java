@@ -25,6 +25,8 @@ import com.peilei.springframework.test.bean.UserService;
 import com.peilei.springframework.test.common.MyBeanFactoryPostProcessor;
 import com.peilei.springframework.test.common.MyBeanPostProcessor;
 import com.peilei.springframework.test.event.CustomEvent;
+import com.peilei.springframework.test.reference.Husband;
+import com.peilei.springframework.test.reference.Wife;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjdk.jol.info.ClassLayout;
@@ -236,5 +238,14 @@ public class ApiTest {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-anno.xml");
         IUserService userService = applicationContext.getBean("userService", IUserService.class);
         System.out.println("测试结果：" + userService.queryUserInfo());
+    }
+
+    @Test
+    public void test_circle() throws BeansException {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-ref.xml");
+        Husband husband = applicationContext.getBean("husband", Husband.class);
+        Wife wife = applicationContext.getBean("wife", Wife.class);
+        System.out.println("husband: " + husband.queryWife());
+        System.out.println("wife: " + wife.queryHusband());
     }
 }

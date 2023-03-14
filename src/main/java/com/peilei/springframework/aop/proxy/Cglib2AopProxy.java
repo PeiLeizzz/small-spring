@@ -1,6 +1,7 @@
 package com.peilei.springframework.aop.proxy;
 
 import com.peilei.springframework.aop.combine.AdvisedSupport;
+import com.peilei.springframework.util.ClassUtils;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -21,7 +22,11 @@ public class Cglib2AopProxy implements AopProxy {
     @Override
     public Object getProxy() {
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(advised.getTargetSource().getTarget().getClass());
+
+        Class<?> aClass = advised.getTargetSource().getTarget().getClass();
+        aClass = ClassUtils.isCglibProxyClass(aClass)? aClass.getSuperclass() : aClass;
+        enhancer.setSuperclass(aClass);
+
         enhancer.setInterfaces(advised.getTargetSource().getTargetClass());
         // 设置拦截器回调
         enhancer.setCallback(new DynamicAdvisedInterceptor(advised));

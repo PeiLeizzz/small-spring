@@ -29,8 +29,27 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     private InstantiationStrategy instantiationStrategy = new CglibSubclassingInstantiationStrategy();
 
     /**
+     * 创造 Bean 对象
+     * @param beanName
+     * @param beanDefinition
+     * @param args
+     * @return
+     * @throws BeansException
+     */
+    @Override
+    protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
+        // 判断是否返回代理对象
+        Object bean = resolveBeforeInstantiation(beanName, beanDefinition);
+        if (bean != null) {
+            return bean;
+        }
+
+        return doCreateBean(beanName, beanDefinition, args);
+    }
+
+    /**
      * 实例化 Bean 对象并填充其属性的具体逻辑实现
-     * factory bean process -- before instantiation -- create bean
+     * factory bean process -- before instantiation -- create bean -- add to cache -- after instantiation
      * -- BeanPostProcessor apply property values -- xml apply property values
      * -- aware -- before process -- init method -- after process
      * -- register disposable bean -- add to singleton pool
@@ -40,17 +59,24 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
      * @return
      * @throws BeansException
      */
-    @Override
-    protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
+    protected Object doCreateBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
         Object bean = null;
         try {
-            // 判断是否返回代理对象
-            bean = resolveBeforeInstantiation(beanName, beanDefinition);
-            if (bean != null) {
-                return bean;
-            }
             // 通过构造函数实例化 Bean
             bean = createBeanInstance(beanDefinition, beanName, args);
+
+            // 处理循环依赖，将实例化但还没有填充属性的对象提前放入缓存
+            if (beanDefinition.isSingleton()) {
+                Object finalBean = bean;
+                addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, beanDefinition, finalBean));
+            }
+
+            // 对象实例化后判断
+            boolean continueWithPropertyPopulation = applyBeanPostProcessorsAfterInstantiation(beanName, bean);
+            if (!continueWithPropertyPopulation) {
+                return bean;
+            }
+
             // 在设置 Bean 属性之前，允许 BeanPostProcessor 修改属性值
             applyBeanPostProcessorsBeforeApplyingPropertyValues(beanName, bean, beanDefinition);
             // 根据 Bean 定义对象中的属性值集合，填充 Bean 的属性值，会覆盖上面构造函数设置的值和 BeanPostProcessor 修改的值
@@ -66,6 +92,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
         // 单例对象加入单例池
         if (beanDefinition.isSingleton()) {
+            // 获取代理对象
+            bean = getSingleton(beanName);
             registerSingleton(beanName, bean);
         }
         return bean;
@@ -130,6 +158,46 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         // 当 args 为 null / 长度为 0 时，constructorToUse = null
         // 此时会调用无参构造
         return getInstantiationStrategy().instantiate(beanDefinition, beanName, constructorToUse, args);
+    }
+
+    /**
+     *
+     * @param beanName
+     * @param beanDefinition
+     * @param bean
+     * @return
+     */
+    protected Object getEarlyBeanReference(String beanName, BeanDefinition beanDefinition, Object bean) throws BeansException {
+        Object exposedObject = bean;
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                exposedObject = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).getEarlyBeanReference(exposedObject, beanName);
+                if (exposedObject == null) {
+                    return null;
+                }
+            }
+        }
+        return exposedObject;
+    }
+
+    /**
+     * Bean 实例化之后的操作，如果返回 false，则不再执行后续对 Bean 对象属性的操作
+     * @param beanName
+     * @param bean
+     * @return
+     */
+    private boolean applyBeanPostProcessorsAfterInstantiation(String beanName, Object bean) throws BeansException {
+        boolean continueWithPropertyPopulation = true;
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                InstantiationAwareBeanPostProcessor instantiationAwareBeanPostProcessor = (InstantiationAwareBeanPostProcessor) beanPostProcessor;
+                if (!instantiationAwareBeanPostProcessor.postProcessAfterInstantiation(bean, beanName)) {
+                    continueWithPropertyPopulation = false;
+                    break;
+                }
+            }
+        }
+        return continueWithPropertyPopulation;
     }
 
     /**

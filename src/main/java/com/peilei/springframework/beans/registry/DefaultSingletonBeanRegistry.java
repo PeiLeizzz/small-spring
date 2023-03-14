@@ -1,6 +1,7 @@
 package com.peilei.springframework.beans.registry;
 
 import com.peilei.springframework.beans.exception.BeansException;
+import com.peilei.springframework.beans.factory.ObjectFactory;
 import com.peilei.springframework.beans.processor.DisposableBean;
 
 import java.util.HashMap;
@@ -12,9 +13,19 @@ import java.util.Set;
  */
 public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
     /**
-     * 单例对象集合
+     * 单例对象一级缓存，普通对象
      */
     private Map<String, Object> singletonObjects = new HashMap<>();
+
+    /**
+     * 二级缓存，没有完全实例化的对象
+     */
+    protected final Map<String, Object> earlySingletonObjects = new HashMap<>();
+
+    /**
+     * 三级缓存，存放代理对象和工厂对象
+     */
+    private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>();
 
     /**
      * 单例对象的销毁方法集合
@@ -27,18 +38,49 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
     protected static final Object NULL_OBJECT = new Object();
 
     @Override
-    public Object getSingleton(String beanName) {
-        return singletonObjects.get(beanName);
+    public Object getSingleton(String beanName) throws BeansException {
+        Object singletonObject = singletonObjects.get(beanName);
+        if (singletonObject != null) {
+            return singletonObject;
+        }
+
+        singletonObject = earlySingletonObjects.get(beanName);
+        if (singletonObject != null) {
+            return singletonObject;
+        }
+
+        // 代理对象 / 工厂对象
+        ObjectFactory<?> singletonFactory = singletonFactories.get(beanName);
+        if (singletonFactory != null) {
+            singletonObject = singletonFactory.getObject();
+            // 把三级缓存中的代理 / 工厂对象中的真实对象获取出来，放入二级缓存中
+            earlySingletonObjects.put(beanName, singletonObject);
+            singletonFactories.remove(beanName);
+        }
+        return singletonObject;
     }
 
-
     /**
-     * 注册单例对象，只有子类可调用
+     * 注册单例对象
      * @param beanName
      * @param singletonObject
      */
     public void registerSingleton(String beanName, Object singletonObject) {
         singletonObjects.put(beanName, singletonObject);
+        earlySingletonObjects.remove(beanName);
+        singletonFactories.remove(beanName);
+    }
+
+    /**
+     * 注册代理对象 / 工厂对象
+     * @param beanName
+     * @param singletonFactory
+     */
+    protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFactory) {
+        if (!this.singletonObjects.containsKey(beanName)) {
+            this.singletonFactories.put(beanName, singletonFactory);
+            this.earlySingletonObjects.remove(beanName);
+        }
     }
 
     /**
